@@ -15,9 +15,9 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Installing
 
-1. Clone the repository: git clone https://github.com/yourusername/your-repo-name.git
+1. Clone the repository: git clone https://github.com/2004durgesh/yt-music-api.git
 
-2. Install Node.js dependencies: cd your-repo-name npm install 
+2. Install Node.js dependencies: cd yt-music-api npm install 
 
 3. Install Python dependencies: pip install -r requirements.txt
 

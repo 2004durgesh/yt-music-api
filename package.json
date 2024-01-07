@@ -9,7 +9,6 @@
     "start-flask": "python main.py",
     "start-express": "nodemon index.js",
     "start":"npm run start-proxy & npm run start-flask & npm run start-express",
-    "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
