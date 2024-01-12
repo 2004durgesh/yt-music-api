@@ -21,7 +21,22 @@ app.use(cors({
 }));
 
 // Routes
-
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Welcome to the yt-music API!',
+    routes: [
+      '/api/express/search/musics?query={query}',
+      '/api/express/search/albums?query={query}',
+      '/api/express/search/playlists?query={query}',
+      '/api/express/search/artists?query={query}',
+      '/api/express/suggestions/{youtubeId}',
+      '/api/express/albums/{albumId}',
+      '/api/express/playlists/{playlistId}',
+      '/api/express/artists/{artistId}',
+      '/api/flask/convert?youtubeId={youtubeId}'
+    ]
+  });
+});
 // Example: /search/musics?query=Ram%20ayenge
 app.get('/api/express/search/musics', async (req, res) => {
   try {
