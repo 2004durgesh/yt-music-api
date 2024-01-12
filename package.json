@@ -4,6 +4,11 @@
   "description": "A api built over node-youtube-music",
   "type": "module",
   "main": "app.js",
+
+    "engines": {
+      "python": "3.11.x",
+      "node": "18.x"
+    },
   "scripts": {
     "start-proxy": "nodemon app.js",
     "start-flask": "python main.py",

@@ -24,7 +24,7 @@ def convert():
         all_audio_stream_urls = [stream.url for stream in yt.streams.filter(only_audio=True)]
 
         # Get captions
-        captions = yt.captions.get_by_language_code('en')
+        captions = yt.captions['en'] if 'en' in yt.captions else None
         captions_srt = captions.generate_srt_captions() if captions else "No captions available"
         captions_vtt = captions.generate_vtt_captions() if captions else "No captions available"
 
