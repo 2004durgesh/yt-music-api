@@ -5,16 +5,16 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, origins='*')
 
-@app.route('/api/flask/convert', methods=['GET'])
+@app.route('/convert', methods=['GET'])
 def convert():
-    youtube_id = request.args.get('youtube_id')
+    youtubeId = request.args.get('youtubeId')
 
-    if not youtube_id:
+    if not youtubeId:
         return jsonify({"status": False, "error": "YouTube ID not specified"})
 
     try:
         # Get YouTube video info using pytube
-        video_url = f'https://www.youtube.com/watch?v={youtube_id}'
+        video_url = f'https://www.youtube.com/watch?v={youtubeId}'
         yt = YouTube(video_url)
 
         # Get the audio stream URL
