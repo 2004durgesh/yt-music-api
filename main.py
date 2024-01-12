@@ -20,11 +20,24 @@ def convert():
         # Get the audio stream URL
         audio_stream_url = yt.streams.filter(only_audio=True).first().url
 
-        # Return the audio stream URL
-        return jsonify({"status": True, "audio_stream_url": audio_stream_url})
+        # Get all audio stream URLs
+        all_audio_stream_urls = [stream.url for stream in yt.streams.filter(only_audio=True)]
+
+        # Get captions
+        captions = yt.captions.get_by_language_code('en')
+        captions_srt = captions.generate_srt_captions() if captions else "No captions available"
+        captions_vtt = captions.generate_vtt_captions() if captions else "No captions available"
+
+        # Return the audio stream URL and captions
+        return jsonify({
+            "status": True, 
+            "audio_stream_url": audio_stream_url,
+            "all_audio_stream_urls": all_audio_stream_urls,
+            "captions_srt": captions_srt,
+            "captions_vtt": captions_vtt
+        })
 
     except Exception as e:
         return jsonify({"status": False, "error": str(e)})
-
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8888)
