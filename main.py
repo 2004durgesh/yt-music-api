@@ -5,7 +5,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, origins='*')
 
-@app.route('/convert', methods=['GET'])
+@app.route('/api/flask/convert', methods=['GET'])
 def convert():
     youtubeId = request.args.get('youtubeId')
 
