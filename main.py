@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from pytube import YouTube
 from flask_cors import CORS
+import requests  # Don't forget to import requests
 
 app = Flask(__name__)
 CORS(app, origins='*')
@@ -22,7 +23,8 @@ def convert():
 
         # Get all audio stream URLs
         all_audio_stream_urls = [stream.url for stream in yt.streams.filter(only_audio=True)]
-
+        #only audio
+        get_audio_only_url = yt.streams.get_audio_only().url
         # Get captions
         captions = yt.captions['en'] if 'en' in yt.captions else None
         captions_srt = captions.generate_srt_captions() if captions else "No captions available"
@@ -33,11 +35,31 @@ def convert():
             "status": True, 
             "audio_stream_url": audio_stream_url,
             "all_audio_stream_urls": all_audio_stream_urls,
+            "get_audio_only_url": get_audio_only_url,
             "captions_srt": captions_srt,
             "captions_vtt": captions_vtt
         })
 
     except Exception as e:
         return jsonify({"status": False, "error": str(e)})
+
+@app.route('/api/proxy/audio', methods=['GET'])
+def proxy_audio():
+    audio_url = request.args.get('audioUrl')
+
+    if not audio_url:
+        return jsonify({"status": False, "error": "Audio URL not specified"})
+
+    try:
+        # Make a request to the YouTube audio URL using the requests library
+        response = requests.get(audio_url, stream=True)
+
+        # Forward the response headers to the client
+        headers = {key: value for (key, value) in response.headers.items()}
+        return response.content, response.status_code, headers
+
+    except Exception as e:
+        return jsonify({"status": False, "error": str(e)})
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8888)
