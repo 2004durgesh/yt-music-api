@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 from pytube import YouTube
 from flask_cors import CORS
-import requests  # Don't forget to import requests
 
 app = Flask(__name__)
 CORS(app, origins='*')
