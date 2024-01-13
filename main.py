@@ -43,23 +43,6 @@ def convert():
     except Exception as e:
         return jsonify({"status": False, "error": str(e)})
 
-@app.route('/api/proxy/audio', methods=['GET'])
-def proxy_audio():
-    audio_url = request.args.get('audioUrl')
-
-    if not audio_url:
-        return jsonify({"status": False, "error": "Audio URL not specified"})
-
-    try:
-        # Make a request to the YouTube audio URL using the requests library
-        response = requests.get(audio_url, stream=True)
-
-        # Forward the response headers to the client
-        headers = {key: value for (key, value) in response.headers.items()}
-        return response.content, response.status_code, headers
-
-    except Exception as e:
-        return jsonify({"status": False, "error": str(e)})
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8888)
