@@ -2,7 +2,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import ytdl from 'ytdl-core';
+import nodeFetch from 'node-fetch';
 import {
   searchMusics,
   searchAlbums,
@@ -126,32 +126,13 @@ app.get('/api/express/artists/:artistId', async (req, res) => {
   }
 });
 app.get('/api/express/convert', async (req, res) => {
-  const youtubeId = req.query.youtubeId;
+  //https://19e4b655-c90c-43d4-beae-294d6c47b2f4-00-3fxygcjrexg4y.pike.replit.dev//api/express/convert?youtubeId={youtubeid} fetch using node-fetch
 
-  if (!youtubeId) {
-      return res.json({ "status": false, "error": "YouTube ID not specified" });
-  }
+  const url = `https://19e4b655-c90c-43d4-beae-294d6c47b2f4-00-3fxygcjrexg4y.pike.replit.dev/convert?youtubeId=${req.query.youtubeId}`;
+  const response = await nodeFetch(url);
+  const json = await response.json();
+  res.json(json);
 
-  try {
-      // Get YouTube video info using ytdl-core
-      const info = await ytdl.getInfo(`https://www.youtube.com/watch?v=${youtubeId}`);
-      
-      // Find the audio stream URL
-      const audioStream = info.formats.find(format => format.mimeType.includes('audio/mp4'));
-      const audioUrl = audioStream ? audioStream.url : null;
-
-      if (!audioUrl) {
-          return res.json({ "status": false, "error": "Audio stream not found" });
-      }
-
-      // Return the audio stream URL
-      return res.json({
-          "status": true,
-          "audio_url": audioUrl
-      });
-  } catch (error) {
-      return res.json({ "status": false, "error": error.message });
-  }
 });
 
 
