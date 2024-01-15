@@ -4,20 +4,13 @@
       {
         "src": "index.js",
         "use": "@vercel/node"
-      },
-      {
-        "src": "main.py",
-        "use": "@vercel/python"
       }
+      
     ],
     "routes": [
       {
-        "src": "/api/express/(.*)",
+        "src": "/(.*)",
         "dest": "index.js"
-      },
-      {
-        "src": "/api/flask/(.*)",
-        "dest": "main.py"
       }
     ]
   }
