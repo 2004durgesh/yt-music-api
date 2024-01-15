@@ -4,16 +4,15 @@
   "description": "A api built over node-youtube-music",
   "type": "module",
   "main": "app.js",
-
-    "engines": {
-      "python": "3.11.x",
-      "node": "18.x"
-    },
+  "engines": {
+    "python": "3.11.x",
+    "node": "18.x"
+  },
   "scripts": {
     "start-proxy": "nodemon app.js",
     "start-flask": "python main.py",
     "start-express": "nodemon index.js",
-    "start":"npm run start-proxy & npm run start-flask & npm run start-express",
+    "start": "npm run start-proxy & npm run start-flask & npm run start-express",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -23,7 +22,8 @@
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "http-proxy-middleware": "^2.0.6",
-    "node-youtube-music": "^0.10.3"
+    "node-youtube-music": "^0.10.3",
+    "ytdl-core": "^4.11.5"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

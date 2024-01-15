@@ -2,6 +2,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import ytdl from 'ytdl-core';
 import {
   searchMusics,
   searchAlbums,
@@ -124,6 +125,35 @@ app.get('/api/express/artists/:artistId', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+app.get('/api/express/convert', async (req, res) => {
+  const youtubeId = req.query.youtubeId;
+
+  if (!youtubeId) {
+      return res.json({ "status": false, "error": "YouTube ID not specified" });
+  }
+
+  try {
+      // Get YouTube video info using ytdl-core
+      const info = await ytdl.getInfo(`https://www.youtube.com/watch?v=${youtubeId}`);
+      
+      // Find the audio stream URL
+      const audioStream = info.formats.find(format => format.mimeType.includes('audio/mp4'));
+      const audioUrl = audioStream ? audioStream.url : null;
+
+      if (!audioUrl) {
+          return res.json({ "status": false, "error": "Audio stream not found" });
+      }
+
+      // Return the audio stream URL
+      return res.json({
+          "status": true,
+          "audio_url": audioUrl
+      });
+  } catch (error) {
+      return res.json({ "status": false, "error": error.message });
+  }
+});
+
 
 
 const PORT = process.env.PORT || 3000;
