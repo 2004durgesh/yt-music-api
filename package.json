@@ -21,7 +21,8 @@
     "http-proxy-middleware": "^2.0.6",
     "node-fetch": "^3.3.2",
     "node-youtube-music": "^0.10.3",
-    "ytdl-core": "^4.11.5"
+    "ytdl-core": "^4.11.5",
+    "ytmusic-api": "^5.2.1"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
