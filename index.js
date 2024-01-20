@@ -19,6 +19,8 @@ app.get('/', (req, res) => {
   res.json({
     message: 'Welcome to the yt-music API!',
     routes: [
+      '/home',
+      '/search/suggestions?query={query}',
       '/search/musics?query={query}',
       '/search/albums?query={query}',
       '/search/playlists?query={query}',
@@ -28,11 +30,37 @@ app.get('/', (req, res) => {
       '/playlists/{playlistId}',
       '/artists/{artistId}',
       '/lyrics/{youtubeId}',
-      '/home',
       '/convert/{youtubeId}',
     ]
   });
 });
+
+
+// Example: /home
+app.get('/home', async (req, res) => {
+  try {
+    await ytmusic.initialize();
+    const homeContent = await ytmusic.getHome();
+    res.json(homeContent);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Example:/search/suggestions?query={query}
+app.get('/search/suggestions', async (req, res) => {
+  try {
+    await ytmusic.initialize();
+    const searchSuggestions = await ytmusic.getSearchSuggestions(req.query.query);
+    res.json(searchSuggestions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // Example: /search/musics?query=Ram ayenge
 app.get('/search/musics', async (req, res) => {
   try {
@@ -124,6 +152,7 @@ app.get('/artists/:artistId', async (req, res) => {
 
     const artist = await ytmusic.getArtist(req.params.artistId);
     res.json(artist);
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -142,17 +171,8 @@ app.get('/lyrics/:youtubeId', async (req, res) => {
   }
 });
 
-// Example: /home
-app.get('/home', async (req, res) => {
-  try {
-    await ytmusic.initialize();
-    const homeContent = await ytmusic.getHome();
-    res.json(homeContent);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+
+
 
 // Example: /convert/:youtubeId
 app.get('/convert/:youtubeId', async (req, res) => {
