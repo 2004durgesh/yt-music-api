@@ -5,6 +5,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import nodeFetch from 'node-fetch';
 import { searchMusics, searchAlbums, searchPlaylists, getSuggestions, listMusicsFromAlbum, listMusicsFromPlaylist, searchArtists, getArtist } from 'node-youtube-music';
+import ytdl from 'ytdl-core';
 const YTMusic = require("ytmusic-api").default;
 const app = express();
 const ytmusic = new YTMusic();
@@ -172,7 +173,23 @@ app.get('/lyrics/:youtubeId', async (req, res) => {
 });
 
 
+// Example: /get-audio-url/:youtubeId
+app.get('/get-audio-url/:youtubeId', async (req, res) => {
+  try {
+    const youtubeId = req.params.youtubeId;
 
+    // Get video info
+    const info = await ytdl.getInfo(youtubeId);
+
+    // Get audio format with the highest quality
+    const audioFormat = ytdl.chooseFormat(info.formats, { filter: 'audioonly' });
+
+    // Respond with the audio URL
+    res.json({ audioUrl: audioFormat.url,info:info });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 // Example: /convert/:youtubeId
 app.get('/convert/:youtubeId', async (req, res) => {
@@ -183,7 +200,6 @@ app.get('/convert/:youtubeId', async (req, res) => {
   res.json(json);
 
 });
-
 
 
 const PORT = process.env.PORT || 3000;
