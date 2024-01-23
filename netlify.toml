@@ -1,7 +1,0 @@
-[build]
-  functions = "netlify/functions"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.js"
-  status = 200
