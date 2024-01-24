@@ -31,6 +31,7 @@ app.get('/', (req, res) => {
       '/playlists/{playlistId}',
       '/artists/{artistId}',
       '/lyrics/{youtubeId}',
+      '/get-audio-url/:youtubeId',
       '/convert/{youtubeId}',
     ]
   });
@@ -194,11 +195,31 @@ app.get('/get-audio-url/:youtubeId', async (req, res) => {
 // Example: /convert/:youtubeId
 app.get('/convert/:youtubeId', async (req, res) => {
 
-  const url = `https://19e4b655-c90c-43d4-beae-294d6c47b2f4-00-3fxygcjrexg4y.pike.replit.dev/convert?youtubeId=${req.params.youtubeId}`;
-  const response = await nodeFetch(url);
-  const json = await response.json();
-  res.json(json);
+  try {
+    const url = `https://19e4b655-c90c-43d4-beae-294d6c47b2f4-00-3fxygcjrexg4y.pike.replit.dev/convert?youtubeId=${req.params.youtubeId}`;
+    const response = await nodeFetch(url);
+    const json = await response.json();
+    res.json(json);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 
+});
+// Example: just a ping /ping
+const url = `https://19e4b655-c90c-43d4-beae-294d6c47b2f4-00-3fxygcjrexg4y.pike.replit.dev/ping`;
+setInterval(async () => {
+  try {
+    const response = await nodeFetch(url);
+    const json = await response.json();
+    console.log('Periodic Ping Result:', json);
+  } catch (error) {
+    console.error('Error during periodic ping:', error);
+  }
+}, 15 * 60 * 1000);
+
+// The /ping route just responds immediately
+app.get('/ping', (req, res) => {
+  res.send('Pong!');
 });
 
 
