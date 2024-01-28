@@ -5,7 +5,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import nodeFetch from 'node-fetch';
 import { searchMusics, searchAlbums, searchPlaylists, getSuggestions, listMusicsFromAlbum, listMusicsFromPlaylist, searchArtists, getArtist } from 'node-youtube-music';
-import ytdl from 'ytdl-core';
+import ytdl from "react-native-ytdl"
 const YTMusic = require("ytmusic-api").default;
 const app = express();
 const ytmusic = new YTMusic();
@@ -177,50 +177,16 @@ app.get('/lyrics/:youtubeId', async (req, res) => {
 // Example: /get-audio-url/:youtubeId
 app.get('/get-audio-url/:youtubeId', async (req, res) => {
   try {
-    const youtubeId = req.params.youtubeId;
+    const youtubeURL = `http://www.youtube.com/watch?v=${req.params.youtubeId}`;
+    const urls = await ytdl(youtubeURL, { quality: 'highestaudio' });
+    res.json(urls);
 
-    // Get video info
-    const info = await ytdl.getInfo(youtubeId);
-
-    // Get audio format with the highest quality
-    const audioFormat = ytdl.chooseFormat(info.formats, { filter: 'audioonly' });
-
-    // Respond with the audio URL
-    res.json({ audioUrl: audioFormat.url,info:info });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-// Example: /convert/:youtubeId
-app.get('/convert/:youtubeId', async (req, res) => {
-
-  try {
-    const url = `https://19e4b655-c90c-43d4-beae-294d6c47b2f4-00-3fxygcjrexg4y.pike.replit.dev/convert?youtubeId=${req.params.youtubeId}`;
-    const response = await nodeFetch(url);
-    const json = await response.json();
-    res.json(json);
-  } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-
-});
-// Example: just a ping /ping
-const url = `https://19e4b655-c90c-43d4-beae-294d6c47b2f4-00-3fxygcjrexg4y.pike.replit.dev/ping`;
-setInterval(async () => {
-  try {
-    const response = await nodeFetch(url);
-    const json = await response.json();
-    console.log('Periodic Ping Result:', json);
-  } catch (error) {
-    console.error('Error during periodic ping:', error);
-  }
-}, 15 * 60 * 1000);
-
-// The /ping route just responds immediately
-app.get('/ping', (req, res) => {
-  res.send('Pong!');
-});
 
 
 const PORT = process.env.PORT || 3000;

@@ -4,10 +4,6 @@
   "description": "A api built over node-youtube-music",
   "type": "module",
   "main": "index.js",
-  "engines": {
-    "python": "3.11.x",
-    "node": "18.x"
-  },
   "scripts": {
     "start": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -21,6 +17,7 @@
     "http-proxy-middleware": "^2.0.6",
     "node-fetch": "^3.3.2",
     "node-youtube-music": "^0.10.3",
+    "react-native-ytdl": "^4.8.3",
     "ytdl-core": "^4.11.5",
     "ytmusic-api": "^5.2.1"
   },
