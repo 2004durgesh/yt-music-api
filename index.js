@@ -5,7 +5,6 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import nodeFetch from 'node-fetch';
 import { searchMusics, searchAlbums, searchPlaylists, getSuggestions, listMusicsFromAlbum, listMusicsFromPlaylist, searchArtists, getArtist } from 'node-youtube-music';
-import ytdl from "react-native-ytdl"
 const YTMusic = require("ytmusic-api").default;
 const app = express();
 const ytmusic = new YTMusic();
@@ -174,18 +173,6 @@ app.get('/lyrics/:youtubeId', async (req, res) => {
 });
 
 
-// Example: /get-audio-url/:youtubeId
-app.get('/get-audio-url/:youtubeId', async (req, res) => {
-  try {
-    const youtubeURL = `http://www.youtube.com/watch?v=${req.params.youtubeId}`;
-    const urls = await ytdl(youtubeURL, { quality: 'highestaudio' });
-    res.json(urls);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
 
 
 
