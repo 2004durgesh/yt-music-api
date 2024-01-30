@@ -21,6 +21,8 @@ These instructions will get you a copy of the project up and running on your loc
 Now you can make requests to `http://localhost:3000` for the Express.js server.
 
 ## API Endpoints 🛣️
+> **Note:** In the YouTube URL `https://www.youtube.com/watch?v=vFQ1EcdTdrI&list=PLRBp0Fe2GpgnRZpKULnyDQv9e_q41M6St`, the YouTube ID is the value after `v=`, which is `vFQ1EcdTdrI` in this case. The playlist ID is the value after `list=`, which is `PLRBp0Fe2GpgnRZpKULnyDQv9e_q41M6St` in this case. These IDs are used in various endpoints of the API.
+
 | Endpoint                | Description                            |
 |-------------------------|----------------------------------------|
 | `/home`                 | Home endpoint                          |
