@@ -12,7 +12,7 @@ env/
 venv/
 *.venv
 *.env
-
+*.txt
 # IDEs and editors
 .vscode/
 .idea/

@@ -3,21 +3,37 @@ const require = createRequire(import.meta.url);
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import nodeFetch from 'node-fetch';
 import { searchMusics, searchAlbums, searchPlaylists, getSuggestions, listMusicsFromAlbum, listMusicsFromPlaylist, searchArtists, getArtist } from 'node-youtube-music';
+const { getPlaylist } = require("youtube-sr").default;
 const YTMusic = require("ytmusic-api").default;
+
 const app = express();
 const ytmusic = new YTMusic();
+
 // Middleware
 app.use(bodyParser.json());
-app.use(cors({
-  origin: '*'
-}));
+app.use(cors({ origin: '*' }));
+
+// Centralized error handling middleware
+const errorHandler = (res, error) => {
+  console.error(error);
+  res.status(500).json({ error: 'Internal Server Error' });
+};
+
+// Helper function for common route logic
+const asyncRoute = (handler) => async (req, res) => {
+  try {
+    await ytmusic.initialize();
+    await handler(req, res);
+  } catch (error) {
+    errorHandler(res, error);
+  }
+};
 
 // Routes
 app.get('/', (req, res) => {
   res.json({
-    message: 'Welcome to the yt-music API!',
+    message: '😊Welcome to the youtube-music 🎵🎶 API!🎉🎊',
     routes: [
       '/home',
       '/search/suggestions?query={query}',
@@ -30,151 +46,73 @@ app.get('/', (req, res) => {
       '/playlists/{playlistId}',
       '/artists/{artistId}',
       '/lyrics/{youtubeId}',
-      '/get-audio-url/:youtubeId',
-      '/convert/{youtubeId}',
-    ]
+    ],
   });
 });
 
+// Grouping routes with similar logic
+app.get('/home', asyncRoute(async (req, res) => {
+  const homeContent = await ytmusic.getHome();
+  res.json(homeContent);
+}));
 
-// Example: /home
-app.get('/home', async (req, res) => {
-  try {
-    await ytmusic.initialize();
-    const homeContent = await ytmusic.getHome();
-    res.json(homeContent);
+app.get('/search/suggestions', asyncRoute(async (req, res) => {
+  const searchSuggestions = await ytmusic.getSearchSuggestions(req.query.query);
+  res.json(searchSuggestions);
+}));
 
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+app.get('/search/musics', asyncRoute(async (req, res) => {
+  const musics = await searchMusics(req.query.query);
+  res.json(musics);
+}));
 
-// Example:/search/suggestions?query={query}
-app.get('/search/suggestions', async (req, res) => {
-  try {
-    await ytmusic.initialize();
-    const searchSuggestions = await ytmusic.getSearchSuggestions(req.query.query);
-    res.json(searchSuggestions);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+app.get('/search/albums', asyncRoute(async (req, res) => {
+  const albums = await searchAlbums(req.query.query);
+  res.json(albums);
+}));
 
-// Example: /search/musics?query=Ram ayenge
-app.get('/search/musics', async (req, res) => {
-  try {
-    const musics = await searchMusics(req.query.query);
-    res.json(musics);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+app.get('/search/playlists', asyncRoute(async (req, res) => {
+  const playlists = await searchPlaylists(req.query.query);
+  res.json(playlists);
+}));
 
-// Example: /search/albums?query=Human after all
-app.get('/search/albums', async (req, res) => {
-  try {
-    const albums = await searchAlbums(req.query.query);
-    res.json(albums);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+app.get('/search/artists', asyncRoute(async (req, res) => {
+  const artists = await searchArtists(req.query.query);
+  res.json(artists);
+}));
 
-// Example: /search/playlists?query=Jazz
-app.get('/search/playlists', async (req, res) => {
-  try {
-    const playlists = await searchPlaylists(req.query.query);
-    res.json(playlists);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+app.get('/suggestions/:youtubeId', asyncRoute(async (req, res) => {
+  const suggestions = await getSuggestions(req.params.youtubeId);
+  res.json(suggestions);
+}));
 
-// Example: /search/artists?query=Daft Punk
-app.get('/search/artists', async (req, res) => {
-  try {
-    const artists = await searchArtists(req.query.query);
-    res.json(artists);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-// Example: /suggestions/{youtubeId}
-app.get('/suggestions/:youtubeId', async (req, res) => {
-  try {
-    const suggestions = await getSuggestions(req.params.youtubeId);
-    res.json(suggestions);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+app.get('/albums/:albumId', asyncRoute(async (req, res) => {
+  const albumSongs = await listMusicsFromAlbum(req.params.albumId);
+  res.json(albumSongs);
+}));
 
-// Example: /albums/{albumId}
-app.get('/albums/:albumId', async (req, res) => {
-  try {
-    const albumSongs = await listMusicsFromAlbum(req.params.albumId);
-    res.json(albumSongs);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+app.get('/playlists/:playlistId', asyncRoute(async (req, res) => {
+    // const playlistSongs = await listMusicsFromPlaylist(req.params.playlistId); /*keep the code for emergency purposes */
+  const playlistSongs = await getPlaylist(`https://www.youtube.com/playlist?list=${req.params.playlistId}`);
+  res.json(playlistSongs);
+}));
 
-// Example: /playlists/{playlistId}
-app.get('/playlists/:playlistId', async (req, res) => {
-  try {
-    const playlistSongs = await listMusicsFromPlaylist(req.params.playlistId);
-    res.json(playlistSongs);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-
-// Example: /artists/{artistId}
-app.get('/artists/:artistId', async (req, res) => {
-  // try {
+// try {
   //   const artist = await getArtist(req.params.artistId);
   //   res.json(artist);
   // } catch (error) {
   //   console.error(error);
   //   res.status(500).json({ error: 'Internal Server Error' });
   // } /*keep the code for emergency purposes */
-  try {
-    await ytmusic.initialize();
+app.get('/artists/:artistId', asyncRoute(async (req, res) => {
+  const artist = await ytmusic.getArtist(req.params.artistId);
+  res.json(artist);
+}));
 
-    const artist = await ytmusic.getArtist(req.params.artistId);
-    res.json(artist);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-// Example: /lyrics/:{youtubeId}
-app.get('/lyrics/:youtubeId', async (req, res) => {
-  try {
-    await ytmusic.initialize();
-    const lyrics = await ytmusic.getLyrics(req.params.youtubeId);
-    res.json(lyrics);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-
-
-
+app.get('/lyrics/:youtubeId', asyncRoute(async (req, res) => {
+  const lyrics = await ytmusic.getLyrics(req.params.youtubeId);
+  res.json(lyrics);
+}));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
