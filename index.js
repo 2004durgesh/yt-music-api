@@ -119,21 +119,15 @@ app.get('/lyrics/:youtubeId', asyncRoute(async (req, res) => {
 }));
 
 app.get("/convert/:youtubeId", asyncRoute(async (req, res) => {
-  res.setHeader('Content-type', 'audio/mpeg');
+  res.setHeader('Content-type', 'audio/mpeg')
   let stream = ytdl(req.params.youtubeId, {
     quality: 'highestaudio',
-  });
-  
+  })
   let proc = ffmpeg({ source: stream })
     .setFfmpegPath(ffmpeg_path)
-    .toFormat('mp3');
-
-  proc.on('error', (err) => {
-    console.error('An error occurred: ' + err.message);
-    res.status(500).send('An error occurred while processing the audio');
-  });
-
-  proc.pipe(res, { end: true });
+    .toFormat('mp3')
+  let songStream = proc.pipe()
+  songStream.pipe(res)
 }));
 
 const PORT = process.env.PORT || 3000;
