@@ -47,6 +47,11 @@ This API leverages a sophisticated technology stack, including:
 - [node-youtube-music](https://www.npmjs.com/package/node-youtube-music) - Unofficial YouTube Music API for Node.js
 - [youtube-sr](https://www.npmjs.com/package/youtube-sr) - Simple package to make YouTube search.
 - [ytmusic-api](https://www.npmjs.com/package/ytmusic-api) - YouTube Music API (Unofficial) is a YouTube Music data scraper.
+- [ytdl-core](https://www.npmjs.com/package/ytdl-core) - YouTube video downloader in JavaScript
+- [fluent-ffmpeg](https://www.npmjs.com/package/fluent-ffmpeg) - A fluent API to FFMPEG (Node.js)
+
+### Requirements for local development
+- [ffmpeg](https://ffmpeg.org/download.html) - FFmpeg is a free and open-source project consisting of a vast software suite of libraries and programs for handling video, audio, and other multimedia files and streams.
 
 ## Contact 📬
 

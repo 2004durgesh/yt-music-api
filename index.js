@@ -119,6 +119,9 @@ app.get('/lyrics/:youtubeId', asyncRoute(async (req, res) => {
 }));
 
 app.get("/convert/:youtubeId", asyncRoute(async (req, res) => {
+  //vercel cant handle audio stream so we will send the audio link instead, the audio-link of some songs may not work due to 403 error
+
+  // the streaming code below is from https://github.com/Thanatoslayer6/ytm-dlapi
   // res.setHeader('Content-type', 'audio/mpeg')
   // let stream = ytdl(req.params.youtubeId, {
   //   quality: 'highestaudio',
