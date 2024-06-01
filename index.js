@@ -6,6 +6,9 @@ import cors from 'cors';
 import { searchMusics, searchAlbums, searchPlaylists, getSuggestions, listMusicsFromAlbum, listMusicsFromPlaylist, searchArtists, getArtist } from 'node-youtube-music';
 const { getPlaylist } = require("youtube-sr").default;
 const YTMusic = require("ytmusic-api").default;
+const ffmpeg = require('fluent-ffmpeg');
+const ffmpeg_path = require('ffmpeg-static');
+const ytdl = require('ytdl-core');
 
 const app = express();
 const ytmusic = new YTMusic();
@@ -46,6 +49,7 @@ app.get('/', (req, res) => {
       '/playlists/{playlistId}',
       '/artists/{artistId}',
       '/lyrics/{youtubeId}',
+      '/convert/{youtubeId}',
     ],
   });
 });
@@ -92,18 +96,18 @@ app.get('/albums/:albumId', asyncRoute(async (req, res) => {
 }));
 
 app.get('/playlists/:playlistId', asyncRoute(async (req, res) => {
-    // const playlistSongs = await listMusicsFromPlaylist(req.params.playlistId); /*keep the code for emergency purposes */
+  // const playlistSongs = await listMusicsFromPlaylist(req.params.playlistId); /*keep the code for emergency purposes */
   const playlistSongs = await getPlaylist(`https://www.youtube.com/playlist?list=${req.params.playlistId}`);
   res.json(playlistSongs);
 }));
 
 // try {
-  //   const artist = await getArtist(req.params.artistId);
-  //   res.json(artist);
-  // } catch (error) {
-  //   console.error(error);
-  //   res.status(500).json({ error: 'Internal Server Error' });
-  // } /*keep the code for emergency purposes */
+//   const artist = await getArtist(req.params.artistId);
+//   res.json(artist);
+// } catch (error) {
+//   console.error(error);
+//   res.status(500).json({ error: 'Internal Server Error' });
+// } /*keep the code for emergency purposes */
 app.get('/artists/:artistId', asyncRoute(async (req, res) => {
   const artist = await ytmusic.getArtist(req.params.artistId);
   res.json(artist);
@@ -112,6 +116,24 @@ app.get('/artists/:artistId', asyncRoute(async (req, res) => {
 app.get('/lyrics/:youtubeId', asyncRoute(async (req, res) => {
   const lyrics = await ytmusic.getLyrics(req.params.youtubeId);
   res.json(lyrics);
+}));
+
+app.get("/convert/:youtubeId", asyncRoute(async (req, res) => {
+  res.setHeader('Content-type', 'audio/mpeg');
+  let stream = ytdl(req.params.youtubeId, {
+    quality: 'highestaudio',
+  });
+  
+  let proc = ffmpeg({ source: stream })
+    .setFfmpegPath(ffmpeg_path)
+    .toFormat('mp3');
+
+  proc.on('error', (err) => {
+    console.error('An error occurred: ' + err.message);
+    res.status(500).send('An error occurred while processing the audio');
+  });
+
+  proc.pipe(res, { end: true });
 }));
 
 const PORT = process.env.PORT || 3000;

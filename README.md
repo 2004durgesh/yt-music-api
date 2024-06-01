@@ -36,6 +36,7 @@ Now you can make requests to `http://localhost:3000` for the Express.js server.
 | `/playlists/{playlistId}`           | Get details of a playlist by ID      |
 | `/artists/{artistId}`               | Get details of an artist by ID       |
 | `/lyrics/{youtubeId}`               | Get lyrics based on a YouTube ID     |
+| `/convert/{youtubeId}`              | Get the mp3 music streamed           |
 
 
 ## Technology Stack 🛠️
