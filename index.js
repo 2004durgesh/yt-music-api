@@ -122,23 +122,23 @@ app.get("/convert/:youtubeId", asyncRoute(async (req, res) => {
   //vercel cant handle audio stream so we will send the audio link instead, the audio-link of some songs may not work due to 403 error
 
   // the streaming code below is from https://github.com/Thanatoslayer6/ytm-dlapi
-  // res.setHeader('Content-type', 'audio/mpeg')
-  // let stream = ytdl(req.params.youtubeId, {
-  //   quality: 'highestaudio',
-  // })
-  // let proc = ffmpeg({ source: stream })
-  //   .setFfmpegPath(ffmpeg_path)
-  //   .toFormat('mp3')
-  // let songStream = proc.pipe()
-  // songStream.pipe(res)
+  res.setHeader('Content-type', 'audio/mpeg')
+  let stream = ytdl(req.params.youtubeId, {
+    quality: 'highestaudio',
+  })
+  let proc = ffmpeg({ source: stream })
+    .setFfmpegPath(ffmpeg_path)
+    .toFormat('mp3')
+  let songStream = proc.pipe()
+  songStream.pipe(res)
 
-const info = await ytdl.getInfo(req.params.youtubeId);
-  const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio', filter: 'audioonly' });
-  if (format) {
-    res.json({ audioLink: format.url });
-  } else {
-    res.status(400).send('No audio only format available');
-  }
+// const info = await ytdl.getInfo(req.params.youtubeId);
+//   const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio', filter: 'audioonly' });
+//   if (format) {
+//     res.json({ audioLink: format.url });
+//   } else {
+//     res.status(400).send('No audio only format available');
+//   }
 }));
 
 const PORT = process.env.PORT || 3000;
