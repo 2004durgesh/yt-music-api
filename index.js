@@ -118,10 +118,20 @@ app.get('/lyrics/:youtubeId', asyncRoute(async (req, res) => {
   res.json(lyrics);
 }));
 
-app.get("/convert/:youtubeId", asyncRoute(async (req, res) => {
-  //vercel cant handle audio stream so we will send the audio link instead, the audio-link of some songs may not work due to 403 error
+app.get('/convert/:youtubeId', asyncRoute(async (req, res) => {
+  const info = await ytdl.getInfo(req.params.youtubeId);
+  const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio', filter: 'audioonly' });
+  if (format) {
+    res.json({ audioLink: format.url });
+  } else {
+    res.status(400).send('No audio only format available');
+  }
+}))
 
-  // the streaming code below is from https://github.com/Thanatoslayer6/ytm-dlapi
+app.get("/stream/:youtubeId", asyncRoute(async (req, res) => {
+  /*vercel cant handle audio stream so we will send the audio link instead,
+  the audio-link of some songs may not work due to 403 error
+  the streaming code below is from https://github.com/Thanatoslayer6/ytm-dlapi*/
   res.setHeader('Content-type', 'audio/mpeg');
   try {
     const stream = ytdl(req.params.youtubeId, { quality: 'highestaudio' });
@@ -140,13 +150,6 @@ app.get("/convert/:youtubeId", asyncRoute(async (req, res) => {
     res.status(500).json({ error: 'Error fetching YouTube stream' });
   }
 
-  // const info = await ytdl.getInfo(req.params.youtubeId);
-  //   const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio', filter: 'audioonly' });
-  //   if (format) {
-  //     res.json({ audioLink: format.url });
-  //   } else {
-  //     res.status(400).send('No audio only format available');
-  //   }
 }));
 
 const PORT = process.env.PORT || 3000;
