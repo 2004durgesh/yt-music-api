@@ -5,14 +5,13 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import { searchMusics, searchAlbums, searchPlaylists, getSuggestions, listMusicsFromAlbum, listMusicsFromPlaylist, searchArtists, getArtist } from 'node-youtube-music';
 const { getPlaylist } = require("youtube-sr").default;
-const YTMusic = require("ytmusic-api").default;
+const YTMusic = require("ytmusic-api");
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpeg_path = require('ffmpeg-static');
 const ytdl = require('ytdl-core');
 
 const app = express();
 const ytmusic = new YTMusic();
-
 // Middleware
 app.use(bodyParser.json());
 app.use(cors({ origin: '*' }));
@@ -129,28 +128,42 @@ app.get('/convert/:youtubeId', asyncRoute(async (req, res) => {
 }))
 
 app.get("/stream/:youtubeId", asyncRoute(async (req, res) => {
-  /*vercel cant handle audio stream so we will send the audio link instead,
+  /*
+  vercel cant handle audio stream so we will send the audio link instead,
   the audio-link of some songs may not work due to 403 error
-  the streaming code below is from https://github.com/Thanatoslayer6/ytm-dlapi*/
-  res.setHeader('Content-type', 'audio/mpeg');
+  the streaming code below is from https://github.com/Thanatoslayer6/ytm-dlapi
+  */
+  res.setHeader('Content-Type', 'audio/mpeg');
+
   try {
-    const stream = ytdl(req.params.youtubeId, { quality: 'highestaudio' });
-    const proc = ffmpeg({ source: stream })
+    // const stream = ytdl(req.params.youtubeId, { quality: 'highestaudio' });
+    const info = await ytdl.getInfo(req.params.youtubeId);
+    const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio', filter: 'audioonly' });
+    
+    const proc = ffmpeg(format?.url)
       .setFfmpegPath(ffmpeg_path)
       .toFormat('mp3');
 
-    proc.on('error', (err) => {
-      console.error('Error in processing:', err);
-      res.status(500).json({ error: 'Error in processing stream' });
+    proc.on('end', () => {
+      console.log('Processing finished successfully');
     });
 
-    proc.pipe(res);
+    proc.on('error', (err) => {
+      console.error('Error in processing:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Error in processing stream' });
+      }
+    });
+
+    proc.pipe(res, { end: true });
   } catch (error) {
     console.error('Error in fetching YouTube stream:', error);
-    res.status(500).json({ error: 'Error fetching YouTube stream' });
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Error fetching YouTube stream' });
+    }
   }
-
 }));
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
