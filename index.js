@@ -8,7 +8,8 @@ const { getPlaylist } = require("youtube-sr").default;
 const YTMusic = require("ytmusic-api");
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpeg_path = require('ffmpeg-static');
-const ytdl = require('ytdl-core');
+// const ytdl = require('ytdl-core');
+import ytdl from '@distube/ytdl-core'
 
 const app = express();
 const ytmusic = new YTMusic();
