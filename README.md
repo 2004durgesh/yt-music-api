@@ -26,39 +26,20 @@ Now you can make requests to `http://localhost:3000` for the Express.js server.
 | Endpoint                | Description                            |
 |-------------------------|----------------------------------------|
 | `/home`                 | Home endpoint                          |
-| `/search/suggestions?query={query}` | Search suggestions based on a query |
 | `/search/musics?query={query}`      | Search for music based on a query    |
 | `/search/albums?query={query}`      | Search for albums based on a query   |
 | `/search/playlists?query={query}`   | Search for playlists based on a query|
 | `/search/artists?query={query}`     | Search for artists based on a query  |
-| `/suggestions/{youtubeId}`          | Suggestions based on a YouTube ID    |
-| `/albums/{albumId}`                 | Get details of an album by ID        |
-| `/playlists/{playlistId}`           | Get details of a playlist by ID      |
+| `/music/{youtubeId}`                  | Get details of a music by ID         |
+| `/playlists/{playlistId}`           | Get details of a playlist/album by ID      |
 | `/artists/{artistId}`               | Get details of an artist by ID       |
 | `/lyrics/{youtubeId}`               | Get lyrics based on a YouTube ID     |
 | `/convert/{youtubeId}`              | Get the mp3 music streamed           |
+| `/stream/{youtubeId}`               | Get the audio streamed               |
 
 
-## Technology Stack 🛠️
-
-This API leverages a sophisticated technology stack, including:
-
-- [Express.js](https://expressjs.com/) - The web framework used
-- [node-youtube-music](https://www.npmjs.com/package/node-youtube-music) - Unofficial YouTube Music API for Node.js
-- [youtube-sr](https://www.npmjs.com/package/youtube-sr) - Simple package to make YouTube search.
-- [ytmusic-api](https://www.npmjs.com/package/ytmusic-api) - YouTube Music API (Unofficial) is a YouTube Music data scraper.
-- [ytdl-core](https://www.npmjs.com/package/ytdl-core) - YouTube video downloader in JavaScript
-- [fluent-ffmpeg](https://www.npmjs.com/package/fluent-ffmpeg) - A fluent API to FFMPEG (Node.js)
-
-### Requirements for local development
+### Requirements for local development (only for streaming)
 - [ffmpeg](https://ffmpeg.org/download.html) - FFmpeg is a free and open-source project consisting of a vast software suite of libraries and programs for handling video, audio, and other multimedia files and streams.
-
-## Contact 📬
-
-For inquiries, collaboration opportunities, or support, feel free to reach out:
-
-- **Email:** durgeshdwivedi81@gmail.com
-- **LinkedIn:** [Durgesh Kumar Dwivedi](https://www.linkedin.com/in/durgesh-kumar-dwivedi-7651a1271/)
 
 
 If you find this project helpful or interesting, consider giving it a ⭐️ on GitHub. Your support is greatly appreciated!

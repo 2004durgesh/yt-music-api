@@ -3,35 +3,22 @@ const require = createRequire(import.meta.url);
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import { searchMusics, searchAlbums, searchPlaylists, getSuggestions, listMusicsFromAlbum, listMusicsFromPlaylist, searchArtists, getArtist } from 'node-youtube-music';
-const { getPlaylist } = require("youtube-sr").default;
-const YTMusic = require("ytmusic-api");
+import ytmusic from 'ytmusic_api_unofficial'
+import { parse, stringify } from 'flatted';
+import { Innertube } from 'youtubei.js';
+import { Client,MusicClient } from "youtubei";
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpeg_path = require('ffmpeg-static');
-// const ytdl = require('ytdl-core');
 import ytdl from '@distube/ytdl-core'
+import { asyncRoute, removeCircularReferences } from "./utils.js";
 
 const app = express();
-const ytmusic = new YTMusic();
+const youtube = await Innertube.create(/* options */);
+const client = new Client();
+const music = new MusicClient();
 // Middleware
 app.use(bodyParser.json());
 app.use(cors({ origin: '*' }));
-
-// Centralized error handling middleware
-const errorHandler = (res, error) => {
-  console.error(error);
-  res.status(500).json({ error: 'Internal Server Error' });
-};
-
-// Helper function for common route logic
-const asyncRoute = (handler) => async (req, res) => {
-  try {
-    await ytmusic.initialize();
-    await handler(req, res);
-  } catch (error) {
-    errorHandler(res, error);
-  }
-};
 
 // Routes
 app.get('/', (req, res) => {
@@ -39,24 +26,23 @@ app.get('/', (req, res) => {
     message: '😊Welcome to the youtube-music 🎵🎶 API!🎉🎊',
     routes: [
       '/home',
-      '/search/suggestions?query={query}',
       '/search/musics?query={query}',
       '/search/albums?query={query}',
       '/search/playlists?query={query}',
       '/search/artists?query={query}',
-      '/suggestions/{youtubeId}',
-      '/albums/{albumId}',
+      '/music/{youtubeId}',
       '/playlists/{playlistId}',
       '/artists/{artistId}',
       '/lyrics/{youtubeId}',
       '/convert/{youtubeId}',
+      '/stream/{youtubeId}',
     ],
   });
 });
 
 // Grouping routes with similar logic
 app.get('/home', asyncRoute(async (req, res) => {
-  const homeContent = await ytmusic.getHome();
+  const homeContent = await ytmusic.charts('FR');
   res.json(homeContent);
 }));
 
@@ -66,73 +52,72 @@ app.get('/search/suggestions', asyncRoute(async (req, res) => {
 }));
 
 app.get('/search/musics', asyncRoute(async (req, res) => {
-  const musics = await searchMusics(req.query.query);
-  res.json(musics);
+  //Available types: false, album, song, video, playlist, artist, podcast, profile, station, episode
+  const musics = await ytmusic.search(req.query.query, "SONG", true);
+  res.json(parse(stringify(musics, removeCircularReferences())));
 }));
 
 app.get('/search/albums', asyncRoute(async (req, res) => {
-  const albums = await searchAlbums(req.query.query);
+  const albums = await ytmusic.search(req.query.query,'album', true);
   res.json(albums);
 }));
 
 app.get('/search/playlists', asyncRoute(async (req, res) => {
-  const playlists = await searchPlaylists(req.query.query);
+  const playlists = await ytmusic.search(req.query.query, "playlist", true);
   res.json(playlists);
 }));
 
 app.get('/search/artists', asyncRoute(async (req, res) => {
-  const artists = await searchArtists(req.query.query);
+  const artists = await ytmusic.search(req.query.query, "artist", true);
   res.json(artists);
 }));
 
-app.get('/suggestions/:youtubeId', asyncRoute(async (req, res) => {
-  const suggestions = await getSuggestions(req.params.youtubeId);
-  res.json(suggestions);
+app.get('/music/:youtubeId', asyncRoute(async (req, res) => {
+  const music = await ytmusic.get(req.params.youtubeId);
+  res.json(music);
 }));
 
-app.get('/albums/:albumId', asyncRoute(async (req, res) => {
-  const albumSongs = await listMusicsFromAlbum(req.params.albumId);
-  res.json(albumSongs);
+app.get('/playlists/:playlistId', asyncRoute(async (req, res) => { //u can also pass the album id
+  // const playlistSongs = await getPlaylist(`https://www.youtube.com/playlist?list=${req.params.playlistId}`);
+  const playlistSongs = await client.getPlaylist(req.params.playlistId);
+  res.json(parse(stringify(playlistSongs, removeCircularReferences())));
 }));
 
-app.get('/playlists/:playlistId', asyncRoute(async (req, res) => {
-  // const playlistSongs = await listMusicsFromPlaylist(req.params.playlistId); /*keep the code for emergency purposes */
-  const playlistSongs = await getPlaylist(`https://www.youtube.com/playlist?list=${req.params.playlistId}`);
-  res.json(playlistSongs);
-}));
 
-// try {
-//   const artist = await getArtist(req.params.artistId);
-//   res.json(artist);
-// } catch (error) {
-//   console.error(error);
-//   res.status(500).json({ error: 'Internal Server Error' });
-// } /*keep the code for emergency purposes */
 app.get('/artists/:artistId', asyncRoute(async (req, res) => {
-  const artist = await ytmusic.getArtist(req.params.artistId);
-  res.json(artist);
+  // const artist = await client.getChannel(req.params.artistId);
+  const artist = await client.findOne(req.params.artistId, {type: "channel"}); 
+  res.json(parse(stringify(artist, removeCircularReferences())));
+
 }));
 
 app.get('/lyrics/:youtubeId', asyncRoute(async (req, res) => {
-  const lyrics = await ytmusic.getLyrics(req.params.youtubeId);
+  const lyrics = await music.getLyrics(req.params.youtubeId);
   res.json(lyrics);
 }));
 
 app.get('/convert/:youtubeId', asyncRoute(async (req, res) => {
-  const info = await ytdl.getInfo(req.params.youtubeId);
-  const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio', filter: 'audioonly' });
-  if (format) {
-    res.json({ audioLink: format.url });
-  } else {
-    res.status(400).send('No audio only format available');
-  }
+  // const audioUrl=await ytmusic.download(req.params.youtubeId);
+  // res.json({ audioLink: audioUrl });
+  const info = await youtube.getBasicInfo(req.params.youtubeId);
+  const url = info.streaming_data?.formats[0].decipher(youtube.session.player);
+  res.json({ url: url });
+  
 }))
+
+app.get('/music/:youtubeId', asyncRoute(async (req, res) => {
+  const music = await client.getVideo(req.params.youtubeId);
+  res.json(music);
+}));
 
 app.get("/stream/:youtubeId", asyncRoute(async (req, res) => {
   /*
   vercel cant handle audio stream so we will send the audio link instead,
   the audio-link of some songs may not work due to 403 error
   the streaming code below is from https://github.com/Thanatoslayer6/ytm-dlapi
+
+  to use this router the server need to be hosted on platform like aws(ec2), azure, heroku, etc (if u find other method pls let me know too😁)
+  vercel is not recommended for this router ( will give 504 error)
   */
   res.setHeader('Content-Type', 'audio/mpeg');
 
@@ -140,7 +125,7 @@ app.get("/stream/:youtubeId", asyncRoute(async (req, res) => {
     // const stream = ytdl(req.params.youtubeId, { quality: 'highestaudio' });
     const info = await ytdl.getInfo(req.params.youtubeId);
     const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio', filter: 'audioonly' });
-    
+
     const proc = ffmpeg(format?.url)
       .setFfmpegPath(ffmpeg_path)
       .toFormat('mp3');
