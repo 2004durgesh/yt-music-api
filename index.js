@@ -1,5 +1,6 @@
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
+const YouTube = require("youtube-sr").default;
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
@@ -26,6 +27,7 @@ app.get('/', (req, res) => {
     message: '😊Welcome to the youtube-music 🎵🎶 API!🎉🎊',
     routes: [
       '/home',
+      '/search/suggestions?query={query}',
       '/search/musics?query={query}',
       '/search/albums?query={query}',
       '/search/playlists?query={query}',
@@ -47,7 +49,7 @@ app.get('/home', asyncRoute(async (req, res) => {
 }));
 
 app.get('/search/suggestions', asyncRoute(async (req, res) => {
-  const searchSuggestions = await ytmusic.getSearchSuggestions(req.query.query);
+  const searchSuggestions = await YouTube.getSuggestions(req.query.query);
   res.json(searchSuggestions);
 }));
 
@@ -99,6 +101,10 @@ app.get('/lyrics/:youtubeId', asyncRoute(async (req, res) => {
 app.get('/convert/:youtubeId', asyncRoute(async (req, res) => {
   // const audioUrl=await ytmusic.download(req.params.youtubeId);
   // res.json({ audioLink: audioUrl });
+
+  /*
+  try this it works every time (https://github.com/imputnet/cobalt/blob/main/docs/api.md)
+   */
   const info = await youtube.getBasicInfo(req.params.youtubeId);
   const url = info.streaming_data?.formats[0].decipher(youtube.session.player);
   res.json({ url: url });
@@ -112,13 +118,15 @@ app.get('/music/:youtubeId', asyncRoute(async (req, res) => {
 
 app.get("/stream/:youtubeId", asyncRoute(async (req, res) => {
   /*
-  vercel cant handle audio stream so we will send the audio link instead,
-  the audio-link of some songs may not work due to 403 error
-  the streaming code below is from https://github.com/Thanatoslayer6/ytm-dlapi
+  So, like, Vercel can’t handle audio streams, so we’ll just send the audio link instead. 
+  Some songs might throw a 403 error, so watch out for that.
+  The streaming code below is borrowed from https://github.com/Thanatoslayer6/ytm-dlapi. 
 
-  to use this router the server need to be hosted on platform like aws(ec2), azure, heroku, etc (if u find other method pls let me know too😁)
-  vercel is not recommended for this router ( will give 504 error)
+  To make this work, you'll need to host the server on platforms like AWS (EC2), Azure, Heroku, etc. 
+  (If you find any other cool ways, let me know! 😁)
+  Just a heads up—Vercel is not a good choice for this route (you’ll probably get a 504 error).
   */
+  
   res.setHeader('Content-Type', 'audio/mpeg');
 
   try {
@@ -127,28 +135,29 @@ app.get("/stream/:youtubeId", asyncRoute(async (req, res) => {
     const format = ytdl.chooseFormat(info.formats, { quality: 'highestaudio', filter: 'audioonly' });
 
     const proc = ffmpeg(format?.url)
-      .setFfmpegPath(ffmpeg_path)
+    .setFfmpegPath(ffmpeg_path)  // For local dev, just set the path to ffmpeg.exe here like: setFfmpegPath('C:/ffmpeg/bin/ffmpeg.exe')
       .toFormat('mp3');
 
     proc.on('end', () => {
-      console.log('Processing finished successfully');
+      console.log('All done! Processing finished successfully');
     });
 
     proc.on('error', (err) => {
-      console.error('Error in processing:', err);
+      console.error('Whoops! Error in processing:', err);
       if (!res.headersSent) {
-        res.status(500).json({ error: 'Error in processing stream' });
+        res.status(500).json({ error: 'Something went wrong with the stream' });
       }
     });
 
     proc.pipe(res, { end: true });
   } catch (error) {
-    console.error('Error in fetching YouTube stream:', error);
+    console.error('Yikes! Error in fetching YouTube stream:', error);
     if (!res.headersSent) {
-      res.status(500).json({ error: 'Error fetching YouTube stream' });
+      res.status(500).json({ error: 'Oops! Error fetching YouTube stream' });
     }
   }
 }));
+
 
 
 const PORT = process.env.PORT || 3000;
